@@ -15,7 +15,7 @@
         .form-header, .form-card, .submit-area {
             background:white; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1);
         }
-        .top-bar { height:8px; background:linear-gradient(to right,#4285f4,#34a853,#fbbc05,#ea4335); }
+        .top-bar { height:10px; background:#673ab7; }
         .header-content { padding:24px 28px; }
         .header-content h1 { font-size:28px; color:#202124; margin-bottom:8px; }
 
@@ -26,12 +26,16 @@
         input, textarea {
             width:100%; border:none; border-bottom:2px solid #dadce0; padding:10px 0; font-size:16px; outline:none;
         }
-        input:focus, textarea:focus { border-bottom:2px solid #1a73e8; }
+        input:focus, textarea:focus { border-bottom:2px solid #673ab7; }
+        textarea { resize:vertical; min-height:80px; }
 
         .wallet-btn {
-            width:100%; padding:12px; margin-top:8px; font-size:16px; font-weight:600;
-            background:white; color:#131313; border:2px solid #121212; border-radius:6px; cursor:pointer;
+            background:white; color:#131313; border:2px solid #121212; border-radius:6px;
+            padding:12px 28px; cursor:pointer; font-size:16px; font-weight:600;
+            transition:all 0.3s ease; width:100%;
         }
+        .wallet-btn:hover { background:#2e2e2e; color:white; }
+        .wallet-btn.connected { background:#151515 !important; color:white !important; border-color:#1e1e1e !important; }
         .wallet-btn.connected { background:#1a73e8; color:white; border-color:#1a73e8; }
 
         .wallet-address { margin-top:15px; padding:12px; background:#f8f9fa; border-radius:6px; display:none; }
@@ -39,8 +43,10 @@
 
         .status { margin-top:12px; font-size:14px; min-height:24px; }
 
-        .submit-area { padding:20px 30px; display:flex; justify-content:space-between; align-items:center; }
-        .submit-btn { background:#1a73e8; color:white; border:none; padding:12px 32px; border-radius:4px; cursor:pointer; }
+        .submit-area { display:flex; justify-content:space-between; align-items:center; background:white; border-radius:10px; padding:20px 30px; box-shadow:0 1px 3px rgba(0,0,0,0.1); }
+        .submit-btn { background:#b2b2b2; color:white; border:none; padding:12px 30px; border-radius:5px; font-size:16px; cursor:pointer; }
+        .submit-btn:hover { background:#3a3a3a; }
+        .clear-btn { color:#673ab7; text-decoration:none; font-weight:500; }
     </style>
 </head>
 <body>
